@@ -1,7 +1,10 @@
-import pandas as pd
-import os
+import unittest
 
-dictionary = pd.read_csv("training_data/groceries_cleaned.csv")["Product_Name"].to_list()
-if "sammi" in dictionary:
-    print("yes")
-print(len(dictionary))
+from ocr import get_item_names_from_receipt
+class Ocr_Test(unittest.TestCase):
+    def test_doc_1(self):
+        pass
+        
+     
+if __name__=='__main__':
+	unittest.main()
