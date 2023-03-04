@@ -4,7 +4,7 @@ import re
 import pytesseract as pt
 from imutils.perspective import four_point_transform
 import imutils
-
+import word_embeddings_ngram as wem
 
 FILE_PATH = "data/"
 BANNED_WORDS = ["store", "phone", "total", "'date", "time", "subtotal", \
@@ -102,10 +102,13 @@ def post_process(raw_text):
     res = ""
     # post processing
     cleaned_text = re.sub(' +', ' ', raw_text)
-    for row in raw_text.split("\n"):
+    
+    for row in cleaned_text.split("\n"):
         if re.search(r'(\$+)', row) is None and bool(re.search(r'\d', row)) == True:
-            res += re.sub(' +', ' ', strip_nums(row)) + "\n"
+            res += strip_nums(row) + "\n"
+    print(res)
     res = [q.strip().lower() for q in res.strip().split("\n") if len(q) >= 3 and all(w not in q.lower() for w in BANNED_WORDS)]
+   
     product_names = []
     for names in res:
         temp = names.split(" ")
@@ -143,11 +146,22 @@ def get_item_names_from_receipt(file_name: str):
     
     if len(product_names) == 0:
         raise Exception("No product names found. Try taking a better picture of the receipt please!")
+
+    mapped_words = []
+    for i in range(len(product_names)):
+        print("------------------")
+        
+        print(f"{i+1}. {product_names[i]}")
+        print(wem.predict_closest_word(product_names[i]))
+        mapped_words.append(wem.predict_closest_word(product_names[i]))
+        print("------------------")
     
-    
-    # cv2.imwrite("temp/ocr_read.jpg", image)
+    print(mapped_words)
 
 
 
-get_item_names_from_receipt("doc1.jpg")
 
+
+
+
+get_item_names_from_receipt("sus2.jpg")
