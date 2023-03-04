@@ -133,16 +133,21 @@ def get_item_names_from_receipt(file_name: str):
     receipt_contour = create_contours(blurred)
     
     receipt = four_point_transform(orig, receipt_contour.reshape(4, 2) * ratio)
-    cv2.imwrite("temp/fixed_ocr.jpg", imutils.resize(receipt, width=500))
+    # cv2.imwrite("temp/fixed_ocr.jpg", imutils.resize(receipt, width=500))
     raw_text = pt.image_to_string(
         cv2.cvtColor(receipt, cv2.COLOR_BGR2RGB),
         config="--psm 4")
     product_names = post_process(raw_text)
     # print(raw_text)
     print(product_names)
-    cv2.imwrite("temp/ocr_read.jpg", image)
+    
+    if len(product_names) == 0:
+        raise Exception("No product names found. Try taking a better picture of the receipt please!")
+    
+    
+    # cv2.imwrite("temp/ocr_read.jpg", image)
 
 
 
-get_item_names_from_receipt("doc2.jpg")
+get_item_names_from_receipt("doc1.jpg")
 
