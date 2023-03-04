@@ -55,12 +55,17 @@ def predict_closest_word(word):
         model = tf.keras.models.load_model("spell_checker_model")
         x = preprocess([word], 3)
         y_pred = model.predict(x)
-        return dictionary[np.argmax(y_pred)]
+        closest_word_idx = np.argmax(y_pred)
+        closest_word_prob = y_pred[0, closest_word_idx]
+        closest_word = dictionary[closest_word_idx]
+        return closest_word, closest_word_prob
 
 # just call this pls
 def get_closest_word(word):
     if not os.path.exists("spell_checker_model"):
         start_model_processing()
-    closest_word = predict_closest_word(word)
+    closest_word, confidence = get_closest_word(word)
+    print(closest_word)
+    print(confidence)
     return closest_word
 

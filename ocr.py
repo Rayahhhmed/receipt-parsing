@@ -1,5 +1,6 @@
 from PIL import Image
 import cv2
+import pandas as pd
 import re
 import pytesseract as pt
 from imutils.perspective import four_point_transform
@@ -8,7 +9,7 @@ import word_embeddings_ngram as wem
 
 FILE_PATH = "data/"
 BANNED_WORDS = ["store", "phone", "total", "'date", "time", "subtotal", \
-                "tax", "change", "cash", "credit", "debit", "card", "amount", \
+                "tax", "change", "cash", "credit", "debit", "card", "amount", "register", "donate" \
                 "paid", "due", "balance", "abn", "gst", "tax", "taxes", "total", \
                 "amount", "subtotal", "net", "receipt", "change", "cash", "credit", "items", "item"]
 
@@ -106,9 +107,7 @@ def post_process(raw_text):
     for row in cleaned_text.split("\n"):
         if re.search(r'(\$+)', row) is None and bool(re.search(r'\d', row)) == True:
             res += strip_nums(row) + "\n"
-    print(res)
     res = [q.strip().lower() for q in res.strip().split("\n") if len(q) >= 3 and all(w not in q.lower() for w in BANNED_WORDS)]
-   
     product_names = []
     for names in res:
         temp = names.split(" ")
@@ -129,39 +128,45 @@ def get_item_names_from_receipt(file_name: str):
     image = orig.copy()
     image = imutils.resize(image, width=500)
     ratio = orig.shape[1] / float(image.shape[1])
-
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5,), 0)
-    
     receipt_contour = create_contours(blurred)
-    
     receipt = four_point_transform(orig, receipt_contour.reshape(4, 2) * ratio)
-    # cv2.imwrite("temp/fixed_ocr.jpg", imutils.resize(receipt, width=500))
     raw_text = pt.image_to_string(
         cv2.cvtColor(receipt, cv2.COLOR_BGR2RGB),
         config="--psm 4")
     product_names = post_process(raw_text)
-    # print(raw_text)
-    print(product_names)
     
     if len(product_names) == 0:
         raise Exception("No product names found. Try taking a better picture of the receipt please!")
 
     mapped_words = []
     for i in range(len(product_names)):
-        print("------------------")
-        
-        print(f"{i+1}. {product_names[i]}")
-        print(wem.predict_closest_word(product_names[i]))
         mapped_words.append(wem.predict_closest_word(product_names[i]))
-        print("------------------")
+    # print("------------------")
+    # print(product_names)
+    # print("------------------")
+    # print(mapped_words)
+    # print("==================")
+    merged_list = []
     
-    print(mapped_words)
+    df = pd.read_csv("training_data/recalled.csv").loc[:, "Product_Name"].to_list()
+    for i in range(len(mapped_words)):
+        (mapped_prod, confidence) = mapped_words[i]
+        elem = ()
+        if confidence < 0.5:
+            elem = (product_names[i], False)
+        else: 
+            elem = (mapped_prod, False)
+        (product_name, recalled) = elem
+        if product_name in df:
+            elem = (product_name, True)
+        merged_list.append(elem)
+    return merged_list
 
 
 
+##########################################################
 
-
-
-
-get_item_names_from_receipt("sus2.jpg")
+val = get_item_names_from_receipt("docket_coles.jpg")
+print(val)
