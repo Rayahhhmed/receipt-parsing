@@ -1,0 +1,6 @@
+
+/venv
+**/*.jpg
+**/*.png
+data/*
+training_data/*
