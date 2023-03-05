@@ -4,7 +4,6 @@ import pandas as pd
 import os
 
 dictionary = pd.read_csv("training_data/product_names.csv")["Product_Name"].to_list()
-print(len(dictionary))
 def extract_ngrams(word, n):
     ngrams = []
     for i in range(len(word) - n + 1):
@@ -28,27 +27,45 @@ def preprocess(data, n):
 
 def start_model_processing():
     # define model
-    with tf.device('/device:GPU:0'):
+    with tf.device('/device:GPU:0'):        
         model = tf.keras.models.Sequential([
             tf.keras.layers.Dense(128, activation='relu', input_shape=(len(dictionary),)),
             tf.keras.layers.Dense(64, activation='relu'),
             tf.keras.layers.Dense(len(dictionary), activation='softmax')
         ])
-
-        # compile model
+        
         model.compile(optimizer='adam',
                     loss='categorical_crossentropy',
                     metrics=['accuracy'])
-    
-        # train model
+         # train model
         x_train = preprocess(dictionary, 3)
         y_train = tf.keras.utils.to_categorical(range(len(dictionary)))
-        model.fit(x_train, y_train, epochs=200, batch_size=2)
-
-        # save model to disk
+        model.fit(x_train, y_train, epochs=69, batch_size=2)
         model.save("spell_checker_model")
+    
+    
+        
+    # else:
+    #     new_layers = tf.keras.models.Sequential([
+    #             tf.keras.layers.Dense(128, activation='relu', input_shape=(len(dictionary),)),
+    #             tf.keras.layers.Dense(64, activation='relu'),
+    #             tf.keras.layers.Dense(len(dictionary), activation='softmax')
+    #         ], "new_layers")
+    #     pretrained_model = tf.keras.models.load_model("spell_checker_model")
+    #     model = tf.keras.models.Sequential([pretrained_model, new_layers])
+    #     model.compile(optimizer='adam',
+    #                     loss='categorical_crossentropy',
+    #                     metrics=['accuracy'])
+    #     for layer in pretrained_model.layers:
+    #         layer.trainable = False
+    #     x_train = preprocess(name, 3)
+    #     y_train = tf.keras.utils.to_categorical(range(len(dictionary)))
+    #     model.fit(x_train, y_train, epochs=80, batch_size=2)
+    #     model.save("spell_checker_model")
 
 # define function to predict closest word in dictionary
+
+
 def predict_closest_word(word):
     with tf.device('/device:GPU:0'):
         # load saved model
@@ -69,3 +86,31 @@ def get_closest_word(word):
     print(confidence)
     return closest_word
 
+
+def add_new_recall_product(name):
+    global dictionary
+    every_product = pd.read_csv("training_data/product_names.csv")["Product_Name"]
+    if name not in every_product.to_list():
+        every_product.loc[len(every_product)] = name
+        every_product.to_csv("training_data/product_names.csv", index=False)
+    
+    
+    recalled_product = pd.read_csv("training_data/recalled.csv")["Product_Name"]
+    if name not in recalled_product.to_list():
+        recalled_product.loc[len(recalled_product)] = name
+        recalled_product.to_csv("training_data/recalled.csv", index=False)
+    
+    start_model_processing(name)
+    
+    return True
+
+
+def remove_recall_product(name):
+    recalled = pd.read_csv("training_data/recalled.csv")["Product_Name"]
+    recalled.drop(recalled[recalled == name].index, inplace=True)
+    recalled.to_csv("training_data/recalled.csv", index=False)
+    return True
+
+
+start_model_processing()
+print(predict_closest_word("sammi shanxi cold noodle"))

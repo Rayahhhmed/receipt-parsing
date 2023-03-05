@@ -8,7 +8,7 @@ import imutils
 import word_embeddings_ngram as wem
 
 FILE_PATH = "data/"
-BANNED_WORDS = ["store", "phone", "total", "'date", "time", "subtotal", \
+BANNED_WORDS = ["store", "phone", "'date", "time", "subtotal", \
                 "tax", "change", "cash", "credit", "debit", "card", "amount", "register", "donate" \
                 "paid", "due", "balance", "abn", "gst", "tax", "taxes", "total", \
                 "amount", "subtotal", "net", "receipt", "change", "cash", "credit", "items", "item"]
@@ -103,7 +103,7 @@ def post_process(raw_text):
     res = ""
     # post processing
     cleaned_text = re.sub(' +', ' ', raw_text)
-    
+    # print(raw_text)
     for row in cleaned_text.split("\n"):
         if re.search(r'(\$+)', row) is None and bool(re.search(r'\d', row)) == True:
             res += strip_nums(row) + "\n"
@@ -151,8 +151,11 @@ def get_item_names_from_receipt(file_name: str):
     merged_list = []
     
     df = pd.read_csv("training_data/recalled.csv").loc[:, "Product_Name"].to_list()
+    
     for i in range(len(mapped_words)):
         (mapped_prod, confidence) = mapped_words[i]
+        print("=*****************=")
+        print(mapped_prod, confidence)
         elem = ()
         if confidence < 0.5:
             elem = (product_names[i], False)
@@ -162,9 +165,8 @@ def get_item_names_from_receipt(file_name: str):
         if product_name in df:
             elem = (product_name, True)
         merged_list.append(elem)
+        
     return merged_list
-
-
 
 ##########################################################
 
