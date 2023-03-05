@@ -82,13 +82,17 @@ def get_closest_word(word):
     if not os.path.exists("spell_checker_model"):
         start_model_processing()
     closest_word, confidence = get_closest_word(word)
-    print(closest_word)
-    print(confidence)
+    # print(closest_word)
+    # print(confidence)
     return closest_word
 
 
 def add_new_recall_product(name):
     global dictionary
+    
+    if os.path.exists("spell_checker_model"):
+        return
+        
     every_product = pd.read_csv("training_data/product_names.csv")["Product_Name"]
     if name not in every_product.to_list():
         every_product.loc[len(every_product)] = name
@@ -112,5 +116,5 @@ def remove_recall_product(name):
     return True
 
 
-start_model_processing()
-print(predict_closest_word("sammi shanxi cold noodle"))
+# start_model_processing()
+# print(predict_closest_word("sammi shaanxi cold noodle"))
