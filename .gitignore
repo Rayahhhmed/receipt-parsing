@@ -1,4 +1,4 @@
-spell_checker_model/
+# spell_checker_model/
 /venv
 training_data/groceries_cleaned.csv
 training_data/groceries.csv
